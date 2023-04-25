@@ -100,5 +100,23 @@ contract Election {
     voteCount = winningVoteCount;
     emit WinnerAnnounced(name, id, voteCount);
 }
+function vote(uint _candidateId) public onlyDuringElection {
+    Voter storage voter = voters[msg.sender];
+    require(!voter.hasVoted, "You have already voted");
+    require(voter.voteDelegated == false, "You have delegated your vote");
+
+    Candidate storage candidate = candidates[_candidateId];
+    require(candidate.id != 0, "Candidate does not exist");
+
+    voter.hasVoted = true;
+    voter.votedFor = _candidateId;
+    candidate.voteCount++;
+
+    emit VoteCast(msg.sender, _candidateId);
+}
+function endElection() public onlyOwner onlyDuringElection {
+    electionState = State.ENDED;
+    emit ElectionEnded();
+}
 
 }
