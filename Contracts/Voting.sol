@@ -60,4 +60,17 @@ contract Election {
         require(electionState == State.ENDED, "Election has not yet ended");
         _;
     }
+
+    function addCandidate(string memory _name, string memory _proposal) public onlyBeforeElection onlyOwner {
+        candidateCount++;
+        candidates[candidateCount] = Candidate(_name, _proposal, candidateCount, 0);
+        emit NewCandidateAdded(_name, _proposal, candidateCount);
+    }
+
+    function addVoter(address _voter, string memory _name) public onlyBeforeElection onlyOwner {
+        require(voters[_voter].voterAddress == address(0), "Voter already added");
+        voterCount++;
+        voters[_voter] = Voter(_voter, _name, 0, false, false, address(0));
+        emit NewVoterAdded(_voter, _name);
+    }
 }
