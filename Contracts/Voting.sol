@@ -73,4 +73,32 @@ contract Election {
         voters[_voter] = Voter(_voter, _name, 0, false, false, address(0));
         emit NewVoterAdded(_voter, _name);
     }
+     function startElection() public onlyOwner onlyBeforeElection {
+        electionState = State.ONGOING;
+        emit ElectionStarted();
+    }
+
+    function displayCandidateDetails(uint _id) public view returns (uint id, string memory name, string memory proposal) {
+        Candidate memory candidate = candidates[_id];
+        id = candidate.id;
+        name = candidate.name;
+        proposal = candidate.proposal;
+    }
+
+  function showWinner() public onlyAfterElection  returns (string memory name, uint id, uint voteCount) {
+    uint winningVoteCount = 0;
+    uint winningCandidateId;
+    for (uint i = 1; i <= candidateCount; i++) {
+        if (candidates[i].voteCount > winningVoteCount) {
+            winningVoteCount = candidates[i].voteCount;
+            winningCandidateId = i;
+        }
+    }
+    Candidate memory winningCandidate = candidates[winningCandidateId];
+    name = winningCandidate.name;
+    id = winningCandidate.id;
+    voteCount = winningVoteCount;
+    emit WinnerAnnounced(name, id, voteCount);
+}
+
 }
