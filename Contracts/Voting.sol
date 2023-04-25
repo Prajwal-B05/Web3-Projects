@@ -119,4 +119,61 @@ function endElection() public onlyOwner onlyDuringElection {
     emit ElectionEnded();
 }
 
+function displayWinner() public onlyAfterElection  returns (string memory) {
+    (string memory name, uint id, uint voteCount) = showWinner();
+    return string(abi.encodePacked("Winner: ", name, " (ID: ", uint2str(id), ", Vote Count: ", uint2str(voteCount), ")"));
+}
+
+// Helper function to convert a uint to a string
+function uint2str(uint _i) internal pure returns (string memory str) {
+    if (_i == 0) {
+        return "0";
+    }
+    uint j = _i;
+    uint length;
+    while (j != 0) {
+        length++;
+        j /= 10;
+    }
+    bytes memory bstr = new bytes(length);
+    uint k = length;
+    while (_i != 0) {
+        k = k-1;
+        uint8 temp = (48 + uint8(_i - _i / 10 * 10));
+        bytes1 b1 = bytes1(temp);
+        bstr[k] = b1;
+        _i /= 10;
+    }
+    return string(bstr);
+}
+
+
+function delegateVote(address _to) public onlyDuringElection {
+    Voter storage sender = voters[msg.sender];
+    require(!sender.hasVoted, "You have already voted");
+    require(!sender.voteDelegated, "You have already delegated your vote");
+
+    // Ensure delegate is not the sender
+    require(_to != msg.sender, "You cannot delegate your vote to yourself");
+
+    // Follow the chain of delegates until a non-delegated voter is found
+    while (voters[_to].voteDelegated) {
+        _to = voters[_to].delegate;
+        require(_to != msg.sender, "Delegation loop detected");
+    }
+
+    // Assign delegate to the sender and mark vote as delegated
+    sender.voteDelegated = true;
+    sender.delegate = _to;
+
+    // If the delegate has already voted, add the vote to the candidate
+    Voter storage delegateTo = voters[_to];
+    if (delegateTo.hasVoted) {
+        candidates[delegateTo.votedFor].voteCount++;
+        emit VoteCast(msg.sender, delegateTo.votedFor);
+    } else {
+        // If the delegate has not voted, forward the vote to the delegate
+        emit VoteDelegated(msg.sender, _to);
+    }
+}
 }
