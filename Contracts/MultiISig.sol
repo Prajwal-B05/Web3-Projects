@@ -20,6 +20,6 @@ contract MultiSig {
         require(y > 0);
         require(y < x.length);
         owners = x;
-        required = y;
+        {
     }
 }
