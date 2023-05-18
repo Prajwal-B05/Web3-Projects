@@ -37,6 +37,21 @@ pragma solidity ^0.8.4;
         }
         return false;
         }
+
+        receive() payable external 
+        {
+        
+        }
+
+
+        function executeTransaction(uint transactionId) public 
+        {
+        require(isConfirmed(transactionId));
+        Transaction storage _tx = transactions[transactionId];
+        (bool success, ) = _tx.destination.call{ value: _tx.value }(_tx.data);
+        require(success);
+        _tx.executed = true;
+        }
     
         function addTransaction(address payable destination, uint value, bytes memory data ) public returns(uint) 
         {
