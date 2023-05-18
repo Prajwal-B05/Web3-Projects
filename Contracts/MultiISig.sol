@@ -77,6 +77,13 @@ pragma solidity ^0.8.4;
           }
         }
 
+           function submitTransaction(address payable dest, uint value , bytes memory data) external 
+           {
+            uint id = addTransaction(dest, value , data);
+            confirmTransaction(id);
+           }
+
+
         function getConfirmationsCount(uint transactionId) public view returns(uint) 
         {
         uint count;
